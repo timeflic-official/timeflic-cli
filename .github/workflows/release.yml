@@ -21,7 +21,7 @@ jobs:
     name: test, build and pack
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with: { node-version: 24, cache: pnpm }
@@ -72,7 +72,7 @@ jobs:
       contents: write   # GitHub release
       id-token: write   # npm trusted publishing (OIDC) and provenance
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with: { sparse-checkout: CHANGELOG.md, sparse-checkout-cone-mode: false }
       - uses: actions/download-artifact@v4
         with: { name: package, path: dist-package }
