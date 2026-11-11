@@ -23,7 +23,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with: { node-version: 24, cache: pnpm }
       - run: pnpm install --frozen-lockfile
       - run: pnpm lint && pnpm tsc && pnpm test
@@ -47,7 +47,7 @@ jobs:
     steps:
       - uses: actions/download-artifact@v4
         with: { name: package, path: dist-package }
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with: { node-version: '${{ matrix.node }}' }
       - name: install the tarball into an empty folder and use it
         run: |
@@ -76,7 +76,7 @@ jobs:
         with: { sparse-checkout: CHANGELOG.md, sparse-checkout-cone-mode: false }
       - uses: actions/download-artifact@v4
         with: { name: package, path: dist-package }
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with: { node-version: 24, registry-url: 'https://registry.npmjs.org' }
       - name: npm 11.5.1 or newer (needed for trusted publishing)
         run: npm install -g 'npm@^11.5.1' && npm --version
