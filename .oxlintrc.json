@@ -1,0 +1,12 @@
+{
+  "plugins": ["typescript", "import", "unicorn"],
+  "categories": {
+    "correctness": "error",
+    "suspicious": "warn"
+  },
+  "rules": {
+    "import/no-cycle": "error",
+    "typescript/no-explicit-any": "error"
+  },
+  "ignorePatterns": ["**/dist/**", "**/node_modules/**", "**/release/**"]
+}

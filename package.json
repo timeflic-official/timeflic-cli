@@ -1,0 +1,45 @@
+{
+  "name": "@timeflic/cli",
+  "version": "0.1.1",
+  "description": "Build, check and submit add-ons and AI agents for TimeFlic",
+  "keywords": ["timeflic", "add-on", "agent", "ai-agent", "developer", "manifest", "cli"],
+  "homepage": "https://github.com/timeflic-official/timeflic-cli#readme",
+  "bugs": {
+    "url": "https://github.com/timeflic-official/timeflic-cli/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/timeflic-official/timeflic-cli.git"
+  },
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "timeflic": "./bin/timeflic.mjs"
+  },
+  "files": ["bin", "dist", "CHANGELOG.md"],
+  "engines": {
+    "node": ">=20"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "packageManager": "pnpm@10.4.0",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "release:check": "node scripts/release-check.mjs",
+    "sync:schema": "node scripts/sync-schema.mjs",
+    "lint": "oxlint --deny-warnings -c .oxlintrc.json src bin scripts",
+    "tsc": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "ajv": "^8.17.1",
+    "ajv-formats": "^3.0.1",
+    "cron-parser": "^5.0.6",
+    "esbuild": "0.28.2",
+    "oxlint": "^1.90.0",
+    "typescript": "~5.9.3",
+    "vitest": "^5.0.4"
+  }
+}

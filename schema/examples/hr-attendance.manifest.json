@@ -1,0 +1,61 @@
+{
+  "schema": "https://developers.timeflic.com/schemas/agent/v1.json",
+  "slug": "hr-attendance-agent",
+  "name": "HR Attendance Agent",
+  "version": "0.1.0",
+  "capabilities": [
+    "hr.attendance"
+  ],
+  "model_tier": "balanced",
+  "instructions": "Every working morning, compare yesterday's tracked time with each member's expected hours from the team report. List members with no time at all and members far below their expected hours, grouped by team, and suggest one follow-up per case. Do not judge; report facts and let a person decide.",
+  "tools": [
+    "timesheet.list",
+    "timesheet.summary",
+    "reports.team_summary",
+    "team.list",
+    "tasks.comments.create"
+  ],
+  "permissions": {
+    "timesheet.view_team": "Reads tracked time per member for the attendance check.",
+    "reports.view_team": "Reads expected versus tracked hours per team.",
+    "team.view": "Knows who is in which team and who is active.",
+    "tasks.view_all": "Answers when mentioned in a task comment."
+  },
+  "triggers": [
+    {
+      "type": "schedule",
+      "cron": "0 9 * * 1-5",
+      "name": "Morning attendance check"
+    },
+    {
+      "type": "mention"
+    }
+  ],
+  "limits": {
+    "max_steps": 8,
+    "max_tool_calls": 12
+  },
+  "pricing": {
+    "monthly": 0
+  },
+  "data_handling": "Reads tracked time, team membership and team reports in the workspace. Stores nothing outside TimeFlic.",
+  "listing": {
+    "summary": "A morning attendance summary from tracked time, with follow-ups to consider.",
+    "description": "HR Attendance Agent looks at yesterday's tracked time against expected hours and posts a short, factual summary every working morning: who tracked nothing, who was far below plan, grouped by team. Mention it in a task comment to ask about attendance on any day.",
+    "category": "hr",
+    "icon": "🕘",
+    "languages": [
+      "en"
+    ],
+    "highlights": [
+      "A morning summary of who is tracking time",
+      "Spots teams below their expected hours",
+      "Suggests follow-ups instead of sending them"
+    ],
+    "setup": [
+      "Install it and give it the role it suggests.",
+      "Check the working days in Settings → Work week.",
+      "Its morning summary arrives in your Inbox on working days."
+    ]
+  }
+}

@@ -1,0 +1,61 @@
+{
+  "schema": "https://developers.timeflic.com/schemas/agent/v1.json",
+  "slug": "payroll-review",
+  "name": "Payroll Review",
+  "version": "1.0.0",
+  "capabilities": [
+    "payroll.review"
+  ],
+  "model_tier": "best",
+  "instructions": "Before a payroll period is approved, review it. Compare each member's payroll hours with their tracked time for the period, flag items that differ by more than ten percent, items for members with no tracked time, and totals that changed sharply from the previous period. Report findings as a short list a finance person can act on. You never approve, pay or change payroll yourself.",
+  "tools": [
+    "payroll.summary",
+    "payroll.periods.list",
+    "timesheet.summary",
+    "team.list",
+    "tasks.comments.create"
+  ],
+  "permissions": {
+    "payroll.view_all": "Reads payroll periods and totals to review them.",
+    "timesheet.view_team": "Compares payroll hours with tracked time.",
+    "team.view": "Matches payroll items to members.",
+    "tasks.view_all": "Answers when mentioned in a task comment."
+  },
+  "triggers": [
+    {
+      "type": "schedule",
+      "cron": "0 8 25 * *",
+      "name": "Pre-payroll review"
+    },
+    {
+      "type": "mention"
+    }
+  ],
+  "limits": {
+    "max_steps": 10,
+    "max_tool_calls": 15
+  },
+  "pricing": {
+    "monthly": 0
+  },
+  "data_handling": "Reads payroll totals and tracked hours of the workspace it is installed in. Amounts are redacted from its run history. Stores nothing outside TimeFlic.",
+  "listing": {
+    "summary": "A second pair of eyes on every payroll period before approval.",
+    "description": "Payroll Review compares payroll hours with tracked time, flags members with mismatches or no tracked time, and points out totals that moved sharply since last period. It reports to the owner's Inbox and never approves, pays or edits payroll.",
+    "category": "finance",
+    "icon": "🧮",
+    "languages": [
+      "en"
+    ],
+    "highlights": [
+      "Reviews a payroll period before you approve it",
+      "Flags payslips that look off, never changes them",
+      "Read-only: it cannot approve or pay"
+    ],
+    "setup": [
+      "Install it and give it the role it suggests.",
+      "Open a payroll period.",
+      "Mention @Payroll Review in a task to get its review."
+    ]
+  }
+}

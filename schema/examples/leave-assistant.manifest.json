@@ -1,0 +1,72 @@
+{
+  "schema": "https://developers.timeflic.com/schemas/agent/v1.json",
+  "slug": "leave-assistant",
+  "name": "Leave Assistant",
+  "version": "1.0.0",
+  "capabilities": [
+    "hr.leave"
+  ],
+  "model_tier": "balanced",
+  "instructions": "You help the HR team with leave. When a leave request comes in, read the request and the member's balances, check it against the workspace leave policy, and either approve requests that are clearly within policy or explain what needs a human decision. Never approve a request that exceeds the member's remaining balance.",
+  "tools": [
+    "leave.requests.list",
+    "leave.balances.list",
+    "leave.requests.approve",
+    "leave.requests.reject",
+    "tasks.comments.create"
+  ],
+  "permissions": {
+    "leave.view_all": "Reads the leave requests it is asked about.",
+    "leave.manage_balances": "Reads member balances to check a request fits.",
+    "leave.approve": "Approves or declines requests that match the workspace policy; anything else is left to a person.",
+    "tasks.view_all": "Answers when mentioned in a task comment."
+  },
+  "triggers": [
+    {
+      "type": "event",
+      "event": "leave.requested"
+    },
+    {
+      "type": "mention"
+    },
+    {
+      "type": "schedule",
+      "cron": "0 9 * * 1",
+      "name": "Weekly leave summary"
+    }
+  ],
+  "tiers": {
+    "leave.requests.approve": "critical"
+  },
+  "limits": {
+    "max_steps": 8,
+    "max_tool_calls": 12
+  },
+  "pricing": {
+    "monthly": 9,
+    "yearly": 90,
+    "trial_days": 14,
+    "included_tokens": 500000
+  },
+  "data_handling": "Reads leave requests and balances in the workspace it is installed in. Stores nothing outside TimeFlic.",
+  "listing": {
+    "summary": "Checks leave requests against your policy and handles the clear ones.",
+    "description": "Leave Assistant reads each new leave request, compares it with the member's balance and your workspace leave rules, approves the ones that are clearly fine and writes a short note on anything that needs a person. Mention it in a task comment to ask about leave.",
+    "category": "hr",
+    "icon": "🌴",
+    "languages": [
+      "en",
+      "bn"
+    ],
+    "highlights": [
+      "Approves leave that fits your policy and balance",
+      "Leaves anything unusual to a person, with its reasons",
+      "Explains each decision in a comment on the request"
+    ],
+    "setup": [
+      "Install it and give it the role it suggests.",
+      "Write your leave policy in Settings → Leave so it can follow it.",
+      "Mention @Leave Assistant in a leave request to ask it about that request."
+    ]
+  }
+}

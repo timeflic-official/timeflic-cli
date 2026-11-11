@@ -1,0 +1,99 @@
+# Publishes @timeflic/cli to npm when a tag v<version> is pushed.
+# npm trusts this exact file (Trusted Publisher: timeflic-official/timeflic-cli, workflow
+# release.yml, environment npm), so no npm token exists anywhere, and because the
+# repository is public every version gets npm provenance.
+# Renaming this file or the environment breaks publishing until npm's setting is updated.
+name: release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: test, build and pack
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 24, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint && pnpm tsc && pnpm test
+      # Builds, packs, installs the tarball into an empty folder and runs it; fails if the tag and version differ.
+      - run: pnpm release:check
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: package
+          path: release/*.tgz
+          if-no-files-found: error
+
+  smoke:
+    name: installed package on Node ${{ matrix.node }}
+    needs: build
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: [20, 22]
+    steps:
+      - uses: actions/download-artifact@v4
+        with: { name: package, path: dist-package }
+      - uses: actions/setup-node@v4
+        with: { node-version: '${{ matrix.node }}' }
+      - name: install the tarball into an empty folder and use it
+        run: |
+          set -euo pipefail
+          tarball="$(ls "$PWD"/dist-package/*.tgz)"
+          mkdir sandbox && cd sandbox && npm init -y >/dev/null
+          npm install --no-audit --no-fund --ignore-scripts "$tarball"
+          npx timeflic --version
+          for template in hr-attendance leave-assistant payroll-review task-triage; do
+            npx timeflic agent init "$template" --out "$template.json"
+            npx timeflic agent validate "$template.json"
+          done
+          npx timeflic agent tools --search leave | grep -q leave.requests
+
+  publish:
+    name: publish to npm
+    needs: [build, smoke]
+    runs-on: ubuntu-latest
+    # Required reviewers on this environment mean every release waits for an owner's approval.
+    environment: npm
+    permissions:
+      contents: write   # GitHub release
+      id-token: write   # npm trusted publishing (OIDC) and provenance
+    steps:
+      - uses: actions/checkout@v4
+        with: { sparse-checkout: CHANGELOG.md, sparse-checkout-cone-mode: false }
+      - uses: actions/download-artifact@v4
+        with: { name: package, path: dist-package }
+      - uses: actions/setup-node@v4
+        with: { node-version: 24, registry-url: 'https://registry.npmjs.org' }
+      - name: npm 11.5.1 or newer (needed for trusted publishing)
+        run: npm install -g 'npm@^11.5.1' && npm --version
+      - name: publish
+        run: |
+          set -euo pipefail
+          version="${GITHUB_REF_NAME#v}"
+          tarball="$(ls "$PWD"/dist-package/*.tgz)"
+          # Pre-releases (0.2.0-beta.1) go to the "next" dist-tag; "latest" only moves on a plain version.
+          if [[ "$version" == *-* ]]; then npm publish "$tarball" --tag next; else npm publish "$tarball"; fi
+      - name: GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          version="${GITHUB_REF_NAME#v}"
+          awk -v v="## $version" '$0 == v {found=1; next} found && /^## / {exit} found {print}' CHANGELOG.md > notes.md
+          [ -s notes.md ] || echo "See CHANGELOG.md." > notes.md
+          flags=(); [[ "$version" == *-* ]] && flags+=(--prerelease)
+          gh release create "$GITHUB_REF_NAME" dist-package/*.tgz --repo "$GITHUB_REPOSITORY" --title "@timeflic/cli $version" --notes-file notes.md "${flags[@]}"

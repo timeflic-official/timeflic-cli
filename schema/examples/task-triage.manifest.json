@@ -1,0 +1,65 @@
+{
+  "schema": "https://developers.timeflic.com/schemas/agent/v1.json",
+  "slug": "task-triage",
+  "name": "Task Triage",
+  "version": "1.0.0",
+  "capabilities": [
+    "tasks.triage"
+  ],
+  "model_tier": "fast",
+  "instructions": "You keep task boards tidy. When a task is created or mentioned to you, read it and its project, suggest a clearer title if the current one is vague, point out a missing due date or assignee, and post one short comment with your suggestions. Only change a task's title or assignee when a person asks you to in a comment.",
+  "tools": [
+    "tasks.list",
+    "tasks.get",
+    "tasks.comments.list",
+    "tasks.update",
+    "tasks.assignees.toggle",
+    "tasks.comments.create",
+    "projects.list",
+    "team.list"
+  ],
+  "permissions": {
+    "tasks.view_all": "Reads the tasks it triages and answers in their comments.",
+    "tasks.edit": "Fixes a title or due date when a person asks for it.",
+    "tasks.assign": "Assigns a task when a person asks for it.",
+    "projects.view": "Knows which project a task belongs to.",
+    "team.view": "Suggests an assignee from the team."
+  },
+  "triggers": [
+    {
+      "type": "event",
+      "event": "task.created"
+    },
+    {
+      "type": "mention"
+    }
+  ],
+  "limits": {
+    "max_steps": 6,
+    "max_tool_calls": 10
+  },
+  "pricing": {
+    "monthly": 0
+  },
+  "data_handling": "Reads tasks, projects and the member list of the workspace it is installed in. Stores nothing outside TimeFlic.",
+  "listing": {
+    "summary": "Suggests clearer titles, missing due dates and assignees on new tasks.",
+    "description": "Task Triage reads each new task and leaves one short comment: a clearer title if needed, a missing due date or assignee, the likely project. It changes a task only when a person asks it to in a comment. Mention it on any task to get its take.",
+    "category": "automation",
+    "icon": "🗂️",
+    "languages": [
+      "en",
+      "bn"
+    ],
+    "highlights": [
+      "Suggests clearer titles on new tasks",
+      "Points out a missing due date or assignee",
+      "Only changes a task when a person asks"
+    ],
+    "setup": [
+      "Install it and give it the role it suggests.",
+      "Create a task: it comments with suggestions.",
+      "Mention @Task Triage to ask it to apply them."
+    ]
+  }
+}

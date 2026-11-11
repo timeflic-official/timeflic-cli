@@ -1,0 +1,325 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://developers.timeflic.com/schemas/agent/v1.json",
+  "title": "TimeFlic agent manifest v1",
+  "description": "What a hosted agent is: identity, instructions, the tools it may call, when it runs, what it costs. TimeFlic's harness executes it; no developer code runs in TimeFlic. See docs/agent-addons-and-developer-program-plan.md §7.3.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "slug",
+    "name",
+    "version",
+    "capabilities",
+    "model_tier",
+    "instructions",
+    "tools",
+    "permissions",
+    "triggers",
+    "pricing",
+    "data_handling",
+    "listing"
+  ],
+  "properties": {
+    "schema": {
+      "type": "string",
+      "const": "https://developers.timeflic.com/schemas/agent/v1.json"
+    },
+    "slug": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$",
+      "minLength": 3,
+      "maxLength": 60,
+      "description": "Globally unique; owned by the developer that first published it."
+    },
+    "name": {
+      "type": "string",
+      "minLength": 2,
+      "maxLength": 60
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)$",
+      "description": "Semver"
+    },
+    "capabilities": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 10,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9_]*\\.[a-z][a-z0-9_]*$"
+      },
+      "description": "What the orchestrator may delegate, e.g. hr.attendance"
+    },
+    "model_tier": {
+      "type": "string",
+      "enum": [
+        "fast",
+        "balanced",
+        "best"
+      ]
+    },
+    "instructions": {
+      "type": "string",
+      "minLength": 20,
+      "maxLength": 12000,
+      "description": "System prompt. Workspace content is always wrapped as data by the harness."
+    },
+    "tools": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 40,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$"
+      },
+      "description": "Names from the public tools reference"
+    },
+    "permissions": {
+      "type": "object",
+      "minProperties": 1,
+      "maxProperties": 40,
+      "propertyNames": {
+        "pattern": "^[a-z][a-z0-9_]*\\.[a-z][a-z0-9_.]*$"
+      },
+      "additionalProperties": {
+        "type": "string",
+        "minLength": 10,
+        "maxLength": 300
+      },
+      "description": "Permission name → why the agent needs it (shown to the owner at install)"
+    },
+    "triggers": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 15,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "type"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "mention",
+              "event",
+              "schedule"
+            ]
+          },
+          "event": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*\\.[a-z][a-z0-9_]*$"
+          },
+          "cron": {
+            "type": "string",
+            "maxLength": 60
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 80
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "type": {
+                  "const": "event"
+                }
+              }
+            },
+            "then": {
+              "required": [
+                "event"
+              ]
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "type": {
+                  "const": "schedule"
+                }
+              }
+            },
+            "then": {
+              "required": [
+                "cron",
+                "name"
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "tiers": {
+      "type": "object",
+      "maxProperties": 40,
+      "propertyNames": {
+        "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$"
+      },
+      "additionalProperties": {
+        "type": "string",
+        "enum": [
+          "write",
+          "critical"
+        ]
+      },
+      "description": "Raise a tool's tier for this agent (never lower it)"
+    },
+    "limits": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "max_steps": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 12
+        },
+        "max_tool_calls": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 20
+        }
+      }
+    },
+    "connections": {
+      "type": "array",
+      "maxItems": 5,
+      "items": {
+        "type": "string",
+        "enum": [
+          "slack",
+          "google_calendar"
+        ]
+      },
+      "description": "First-party integrations TimeFlic brokers; no other outbound network"
+    },
+    "pricing": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "monthly"
+      ],
+      "properties": {
+        "monthly": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 999
+        },
+        "yearly": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 9999
+        },
+        "trial_days": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 30
+        },
+        "included_tokens": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 50000000
+        }
+      }
+    },
+    "data_handling": {
+      "type": "string",
+      "minLength": 20,
+      "maxLength": 1000,
+      "description": "Shown on the listing: what the agent reads and stores"
+    },
+    "listing": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "summary",
+        "description"
+      ],
+      "properties": {
+        "summary": {
+          "type": "string",
+          "minLength": 10,
+          "maxLength": 140
+        },
+        "description": {
+          "type": "string",
+          "minLength": 50,
+          "maxLength": 5000
+        },
+        "category": {
+          "type": "string",
+          "enum": [
+            "finance",
+            "hr",
+            "monitoring",
+            "automation",
+            "analytics",
+            "security"
+          ]
+        },
+        "icon": {
+          "type": "string",
+          "maxLength": 10,
+          "description": "An emoji used until a logo is uploaded in the Developer Portal."
+        },
+        "languages": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 10,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z]{2,3}(-[A-Z]{2})?$"
+          },
+          "description": "Languages the agent works in, as language codes (en, bn, pt-BR). Shown on the listing as \"Works in\"."
+        },
+        "highlights": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 5,
+          "items": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 100
+          },
+          "description": "Up to five short lines the listing shows as what the agent does."
+        },
+        "setup": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 6,
+          "items": {
+            "type": "string",
+            "minLength": 5,
+            "maxLength": 200
+          },
+          "description": "Getting-started steps shown after install, in order."
+        },
+        "docs_url": {
+          "type": "string",
+          "format": "uri",
+          "pattern": "^https://",
+          "maxLength": 500,
+          "description": "The publisher's documentation for this agent."
+        },
+        "screenshots": {
+          "type": "array",
+          "maxItems": 6,
+          "items": {
+            "type": "string",
+            "format": "uri",
+            "maxLength": 500
+          },
+          "description": "Ignored by the store: upload screenshots in the Developer Portal so TimeFlic hosts them."
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,701 @@
+{
+  "synced_at": "2026-11-04T12:06:49.815Z",
+  "source": "http://localhost:8001",
+  "tools": [
+    {
+      "name": "tasks.list",
+      "description": "List tasks in the workspace. Filter by status, priority, project, assignee or sprint; paginated.",
+      "tier": "read",
+      "permission": "tasks.view_all",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "search": {
+            "type": "string"
+          },
+          "status": {
+            "description": "Catalog status key for this task's project or workspace. Review roles are filterable but are set through submit and review.",
+            "type": "string"
+          },
+          "priority": {
+            "type": "string",
+            "enum": [
+              "low",
+              "medium",
+              "high",
+              "critical"
+            ]
+          },
+          "project_id": {
+            "type": "integer"
+          },
+          "project_ref": {
+            "description": "Project id or public UUID",
+            "type": "string"
+          },
+          "assignee_id": {
+            "description": "Primary assignee or additional assignee via task_assignees",
+            "type": "integer"
+          },
+          "sprint_id": {
+            "type": "integer"
+          },
+          "sprint": {
+            "description": "Use backlog for tasks with no sprint",
+            "type": "string"
+          },
+          "page": {
+            "type": "integer",
+            "default": 1
+          },
+          "per_page": {
+            "type": "integer",
+            "default": 20
+          }
+        }
+      }
+    },
+    {
+      "name": "tasks.get",
+      "description": "Read one task with its details, assignees and status.",
+      "tier": "read",
+      "permission": "tasks.view_all",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id"
+        ]
+      }
+    },
+    {
+      "name": "tasks.create",
+      "description": "Create a task in a project.",
+      "tier": "write",
+      "permission": "tasks.create",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "activity": {
+            "type": "string"
+          },
+          "account_code": {
+            "type": "string"
+          },
+          "project_id": {
+            "type": "integer"
+          },
+          "assignee_id": {
+            "description": "Legacy single assignee (backward compatible)",
+            "type": "integer"
+          },
+          "assignee_ids": {
+            "description": "Multiple assignees via task_assignees pivot",
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
+          },
+          "status": {
+            "description": "Catalog status key. Submit and review roles are rejected on create.",
+            "type": "string"
+          },
+          "priority": {
+            "type": "string",
+            "enum": [
+              "low",
+              "medium",
+              "high",
+              "critical"
+            ]
+          },
+          "due_date": {
+            "type": "string",
+            "format": "date"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "name"
+        ]
+      }
+    },
+    {
+      "name": "tasks.update",
+      "description": "Update a task: title, description, status, priority, due date.",
+      "tier": "write",
+      "permission": "tasks.edit",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "activity": {
+            "type": "string"
+          },
+          "account_code": {
+            "type": "string"
+          },
+          "status": {
+            "description": "Catalog status key. Submit and changes-requested roles use the review endpoints. A task in the submit role can be force-completed onto the approval role.",
+            "type": "string"
+          },
+          "priority": {
+            "type": "string",
+            "enum": [
+              "low",
+              "medium",
+              "high",
+              "critical"
+            ]
+          },
+          "due_date": {
+            "type": "string",
+            "format": "date"
+          },
+          "assignee_id": {
+            "description": "Legacy single assignee (backward compatible)",
+            "type": "integer"
+          },
+          "assignee_ids": {
+            "description": "Replace full assignee set via task_assignees pivot",
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
+          },
+          "project_id": {
+            "type": "integer"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "id"
+        ]
+      }
+    },
+    {
+      "name": "tasks.delete",
+      "description": "Delete a task. Irreversible.",
+      "tier": "critical",
+      "permission": "tasks.delete",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id"
+        ]
+      }
+    },
+    {
+      "name": "tasks.assignees.toggle",
+      "description": "Add or remove an assignee on a task.",
+      "tier": "write",
+      "permission": "tasks.assign",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "team_member_id": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "team_member_id"
+        ]
+      }
+    },
+    {
+      "name": "tasks.comments.list",
+      "description": "Read the comments on a task.",
+      "tier": "read",
+      "permission": "tasks.view_all",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id"
+        ]
+      }
+    },
+    {
+      "name": "tasks.comments.create",
+      "description": "Post a comment on a task, optionally assigned to a member as an action item.",
+      "tier": "write",
+      "permission": "tasks.view_all",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "body": {
+            "type": "string"
+          },
+          "assigned_to": {
+            "type": "integer",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "body"
+        ]
+      }
+    },
+    {
+      "name": "projects.list",
+      "description": "List projects in the workspace.",
+      "tier": "read",
+      "permission": "projects.view",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "search": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "active",
+              "inactive",
+              "archived"
+            ]
+          },
+          "page": {
+            "type": "integer",
+            "default": 1
+          },
+          "per_page": {
+            "type": "integer",
+            "default": 20
+          }
+        }
+      }
+    },
+    {
+      "name": "projects.get",
+      "description": "Read one project.",
+      "tier": "read",
+      "permission": "projects.view",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id"
+        ]
+      }
+    },
+    {
+      "name": "team.list",
+      "description": "List workspace members with role and status.",
+      "tier": "read",
+      "permission": "team.view",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "search": {
+            "type": "string"
+          },
+          "department": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "active",
+              "inactive",
+              "pending"
+            ]
+          },
+          "page": {
+            "type": "integer",
+            "default": 1
+          },
+          "per_page": {
+            "type": "integer",
+            "default": 20
+          }
+        }
+      }
+    },
+    {
+      "name": "team.get",
+      "description": "Read one member.",
+      "tier": "read",
+      "permission": "team.view",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id"
+        ]
+      }
+    },
+    {
+      "name": "team.deactivate",
+      "description": "Deactivate a member: they lose access until reactivated.",
+      "tier": "critical",
+      "permission": "team.activate_members",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id"
+        ]
+      }
+    },
+    {
+      "name": "timesheet.list",
+      "description": "Time entries for a date range, optionally one project; paginated.",
+      "tier": "read",
+      "permission": "timesheet.view_team",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "start_date": {
+            "type": "string",
+            "format": "date"
+          },
+          "end_date": {
+            "type": "string",
+            "format": "date"
+          },
+          "project_id": {
+            "type": "integer"
+          },
+          "page": {
+            "type": "integer",
+            "default": 1
+          },
+          "per_page": {
+            "type": "integer",
+            "default": 20
+          }
+        }
+      }
+    },
+    {
+      "name": "timesheet.summary",
+      "description": "Hours totals for a date range.",
+      "tier": "read",
+      "permission": "timesheet.view_team",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "start_date": {
+            "type": "string",
+            "format": "date"
+          },
+          "end_date": {
+            "type": "string",
+            "format": "date"
+          },
+          "project_id": {
+            "type": "integer"
+          }
+        }
+      }
+    },
+    {
+      "name": "time_entries.create",
+      "description": "Create a finished time entry with notes, start and end.",
+      "tier": "write",
+      "permission": "time_entries.create",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "project_id": {
+            "type": "integer",
+            "nullable": true
+          },
+          "task_id": {
+            "type": "integer",
+            "nullable": true
+          },
+          "notes": {
+            "type": "string",
+            "maxLength": 500
+          },
+          "start_time": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "end_time": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "duration": {
+            "type": "integer",
+            "nullable": true,
+            "minimum": 0
+          },
+          "activity": {
+            "type": "string",
+            "nullable": true,
+            "maxLength": 255
+          },
+          "account_code": {
+            "type": "string",
+            "nullable": true,
+            "maxLength": 100
+          }
+        },
+        "required": [
+          "notes",
+          "start_time"
+        ]
+      }
+    },
+    {
+      "name": "leave.requests.list",
+      "description": "List leave requests in the workspace.",
+      "tier": "read",
+      "permission": "leave.view_all",
+      "input_schema": {
+        "type": "object",
+        "properties": []
+      }
+    },
+    {
+      "name": "leave.requests.approve",
+      "description": "Approve a pending leave request.",
+      "tier": "write",
+      "permission": "leave.approve",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id"
+        ]
+      }
+    },
+    {
+      "name": "leave.requests.reject",
+      "description": "Reject a pending leave request with a reason.",
+      "tier": "write",
+      "permission": "leave.approve",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id"
+        ]
+      }
+    },
+    {
+      "name": "leave.balances.list",
+      "description": "Leave balances of every member.",
+      "tier": "read",
+      "permission": "leave.manage_balances",
+      "input_schema": {
+        "type": "object",
+        "properties": []
+      }
+    },
+    {
+      "name": "leave.balances.adjust",
+      "description": "Change a member's entitled or carried leave days.",
+      "tier": "critical",
+      "permission": "leave.manage_balances",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "entitled_days": {
+            "type": "number"
+          },
+          "carried_days": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "id"
+        ]
+      }
+    },
+    {
+      "name": "payroll.summary",
+      "description": "Payroll dashboard summary.",
+      "tier": "read",
+      "permission": "payroll.view_all",
+      "input_schema": {
+        "type": "object",
+        "properties": []
+      }
+    },
+    {
+      "name": "payroll.periods.list",
+      "description": "List payroll periods and their status.",
+      "tier": "read",
+      "permission": "payroll.view_all",
+      "input_schema": {
+        "type": "object",
+        "properties": []
+      }
+    },
+    {
+      "name": "payroll.periods.approve_all",
+      "description": "Approve every item in a payroll period.",
+      "tier": "critical",
+      "permission": "payroll.approve_items",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id"
+        ]
+      }
+    },
+    {
+      "name": "payroll.periods.mark_all_paid",
+      "description": "Mark every item in a payroll period as paid.",
+      "tier": "critical",
+      "permission": "payroll.mark_paid",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "method": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "method"
+        ]
+      }
+    },
+    {
+      "name": "reports.team_summary",
+      "description": "Team time report summary for a date range.",
+      "tier": "read",
+      "permission": "reports.view_team",
+      "input_schema": {
+        "type": "object",
+        "properties": []
+      }
+    },
+    {
+      "name": "hr.overview",
+      "description": "HR hub overview: headcount, leave today, pending requests.",
+      "tier": "read",
+      "permission": "leave.view_all",
+      "input_schema": {
+        "type": "object",
+        "properties": []
+      }
+    }
+  ],
+  "tiers": [
+    "read",
+    "write",
+    "critical"
+  ],
+  "events": [
+    {
+      "name": "task.created",
+      "label": "A task was created"
+    },
+    {
+      "name": "task.updated",
+      "label": "A task was edited"
+    },
+    {
+      "name": "task.status_changed",
+      "label": "A task changed status"
+    },
+    {
+      "name": "task.completed",
+      "label": "A task was completed"
+    },
+    {
+      "name": "task.group_changed",
+      "label": "A task moved to another team"
+    },
+    {
+      "name": "leave.requested",
+      "label": "A member requested leave"
+    },
+    {
+      "name": "leave.approved",
+      "label": "A leave request was approved"
+    },
+    {
+      "name": "leave.rejected",
+      "label": "A leave request was rejected"
+    },
+    {
+      "name": "time_entry.submitted",
+      "label": "A time entry or week was submitted for review"
+    }
+  ],
+  "schema": "https://developers.timeflic.com/schemas/agent/v1.json"
+}
