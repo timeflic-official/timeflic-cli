@@ -45,7 +45,7 @@ jobs:
       matrix:
         node: [20, 22]
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with: { name: package, path: dist-package }
       - uses: actions/setup-node@v4
         with: { node-version: '${{ matrix.node }}' }
@@ -74,7 +74,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with: { sparse-checkout: CHANGELOG.md, sparse-checkout-cone-mode: false }
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with: { name: package, path: dist-package }
       - uses: actions/setup-node@v4
         with: { node-version: 24, registry-url: 'https://registry.npmjs.org' }
